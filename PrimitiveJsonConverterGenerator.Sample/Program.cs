@@ -5,7 +5,7 @@ using System.Text.Json;
 var a = 32;
 var value = new DiceRoll(32);
 
-
+PrimitiveJsonConverterLoader.Load();
 
 string jsonString = JsonSerializer.Serialize(value);
 
