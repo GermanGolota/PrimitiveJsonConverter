@@ -24,14 +24,14 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
 
     private static readonly DiagnosticDescriptor NoConversionOperators = new DiagnosticDescriptor(id: "PRIM001",
                                                                                               title: "Not enough conversion operators",
-                                                                                              messageFormat: $"Type '{0}' must contain a pair of conversion operators to use '{nameof(PrimitiveJsonConverterFactory)}'",
+                                                                                              messageFormat: $"Type '{{0}}' must contain a pair of conversion operators to use '{nameof(PrimitiveJsonConverterFactory)}'",
                                                                                               category: "PrimitiveGen",
                                                                                               DiagnosticSeverity.Warning,
                                                                                               isEnabledByDefault: true);
 
     private static readonly DiagnosticDescriptor TooManyConversionOperators = new DiagnosticDescriptor(id: "PRIM002",
                                                                                              title: "Too many conversion operators",
-                                                                                             messageFormat: $"Type '{0}' must contain only one pair of conversion operators to use '{nameof(PrimitiveJsonConverterFactory)}'",
+                                                                                             messageFormat: $"Type '{{0}}' must contain only one pair of conversion operators to use '{nameof(PrimitiveJsonConverterFactory)}'",
                                                                                              category: "PrimitiveGen",
                                                                                              DiagnosticSeverity.Warning,
                                                                                              isEnabledByDefault: true);
@@ -184,7 +184,19 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
 
     private static Dictionary<string, Method> _typeToMethods = new Dictionary<string, Method>()
     {
-        { "global::System.Int32", new("Number", "GetInt32", "WriteNumberValue", true)}
+        { "global::System.Int16", new("Number", "GetInt16", "WriteNumberValue", true)},
+        { "global::System.Int32", new("Number", "GetInt32", "WriteNumberValue", true)},
+        { "global::System.Int64", new("Number", "GetInt64", "WriteNumberValue", true)},
+
+        { "global::System.UInt16", new("Number", "GetUInt16", "WriteNumberValue", true)},
+        { "global::System.UInt32", new("Number", "GetUInt32", "WriteNumberValue", true)},
+        { "global::System.UInt64", new("Number", "GetUInt64", "WriteNumberValue", true)},
+
+        { "global::System.Single", new("Number", "GetSingle", "WriteNumberValue", true)},
+        { "global::System.Double", new("Number", "GetDouble", "WriteNumberValue", true)},
+
+        { "global::System.String", new("String", "GetString", "WriteStringValue", true)},
+        { "global::System.Guid", new("String", "GetGuid", "WriteStringValue", true)},
     };
 
     private (string Code, string ClassName) BuildCode(VoMapping mapping)
