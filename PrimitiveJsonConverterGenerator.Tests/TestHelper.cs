@@ -14,7 +14,7 @@ public static class TestHelper
         IEnumerable<PortableExecutableReference> references = new[]
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(PrimitiveJsonConverterFactory).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PrimitiveJsonConverterGenerator).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(JsonConverterAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(runtimePath),
         };
