@@ -201,7 +201,7 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         { "global::System.Single", new("Number", "GetSingle", "WriteNumberValue", true)},
         { "global::System.Double", new("Number", "GetDouble", "WriteNumberValue", true)},
 
-        { "global::System.String", new("String", "GetString", "WriteStringValue", true)},
+        { "global::System.String", new("String", "GetString", "WriteStringValue", false)},
         { "global::System.Guid", new("String", "GetGuid", "WriteStringValue", true)},
     };
 
