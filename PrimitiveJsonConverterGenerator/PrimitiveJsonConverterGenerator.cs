@@ -23,7 +23,7 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         var provider = context.SyntaxProvider.CreateSyntaxProvider(
             predicate: static (node, _) =>
                 (node is TypeDeclarationSyntax type && type.AttributeLists.Count > 0),
-            transform: static (n, _) => n.Node as TypeDeclarationSyntax
+            transform: static (n, _) => (TypeDeclarationSyntax)n.Node
             )
             .Where(_ => _ is not null);
 
