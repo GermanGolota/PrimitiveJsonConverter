@@ -12,14 +12,14 @@ namespace PrimitiveJsonConverterGenerator
             PrimitiveJsonConverterLoader.Load();
         }
 
-        internal static Dictionary<Type, JsonConverter> Converters = new();
+        internal static global::System.Collections.Generic.Dictionary<global::System.Type, JsonConverter> Converters = new();
 
-        public override bool CanConvert(Type typeToConvert)
+        public override bool CanConvert(global::System.Type typeToConvert)
         {
             return Converters.ContainsKey(typeToConvert);
         }
 
-        public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+        public override JsonConverter? CreateConverter(global::System.Type typeToConvert, JsonSerializerOptions options)
         {
             return Converters[typeToConvert];
         }

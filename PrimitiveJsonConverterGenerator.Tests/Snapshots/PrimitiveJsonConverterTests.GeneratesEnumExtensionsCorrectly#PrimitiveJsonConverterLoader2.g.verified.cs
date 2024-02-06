@@ -4,12 +4,12 @@
 ﻿using System.Text.Json;
 namespace PrimitiveJsonConverterGenerator
 {
-internal static partial class PrimitiveJsonConverterLoader
-{
-public static partial void Load()
-{
-DiceRollPrimitiveJsonConverter.Load();
-}
-}
+	internal static partial class PrimitiveJsonConverterLoader
+	{
+		public static partial void Load()
+		{
+			DiceRollPrimitiveJsonConverter.Load();
+		}
+	}
 }
 ﻿#nullable disable
