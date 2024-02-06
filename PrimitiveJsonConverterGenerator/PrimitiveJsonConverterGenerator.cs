@@ -32,20 +32,6 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(compilation, (spc, source) => Execute(spc, source.Left, source.Right));
     }
 
-    private static readonly DiagnosticDescriptor NoConversionOperators = new DiagnosticDescriptor(id: "PRIM001",
-                                                                                              title: "Not enough conversion operators",
-                                                                                              messageFormat: $"Type '{{0}}' must contain a pair of conversion operators to use '{ConstantCode.FactoryName}'",
-                                                                                              category: "PrimitiveGen",
-                                                                                              DiagnosticSeverity.Warning,
-                                                                                              isEnabledByDefault: true);
-
-    private static readonly DiagnosticDescriptor TooManyConversionOperators = new DiagnosticDescriptor(id: "PRIM002",
-                                                                                             title: "Too many conversion operators",
-                                                                                             messageFormat: $"Type '{{0}}' must contain only one pair of conversion operators to use '{ConstantCode.FactoryName}'",
-                                                                                             category: "PrimitiveGen",
-                                                                                             DiagnosticSeverity.Warning,
-                                                                                             isEnabledByDefault: true);
-
     private static string[] _supportedTypes = new[]
     {
         nameof(Int16),
@@ -138,8 +124,8 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
             {
                 var desc = mappings.Count switch
                 {
-                    0 => NoConversionOperators,
-                    _ => TooManyConversionOperators
+                    0 => Diagnostics.NoConversionOperators,
+                    _ => Diagnostics.TooManyConversionOperators
                 };
                 diagnostics.Add(Diagnostic.Create(desc, symbol.Locations[0], new[] { symbolType }));
             }
