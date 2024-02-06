@@ -25,7 +25,7 @@ internal static class SerializerWriter
         { "global::System.Guid", new("String", "GetGuid", "WriteStringValue", true)},
     };
 
-    public static (string Code, string ClassName) WriteCode(VoMapping mapping)
+    public static (string Code, string ClassName) WriteCode(ValueObjectMapping mapping)
     {
         var methods = _typeToMethods[mapping.PrimitiveType];
 
