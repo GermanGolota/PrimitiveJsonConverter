@@ -132,6 +132,8 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         nameof(Guid)
     };
 
+    private static Namespace _systemNamespace = new Namespace.Local("System");
+
     private static (IEnumerable<ValueObjectMapping> mappings, IEnumerable<Diagnostic> diagnostics) AnalyzeSymbols(List<INamedTypeSymbol> typeSymbols)
     {
         var diagnostics = new List<Diagnostic>();
@@ -180,10 +182,10 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
                         map.InType == symbolType
                             ? map.OutType
                             : map.InType;
-                    //TODO: May need to be updated
+
                     mappings.Add(new(
-                        ToGlobal("System", primitive),
-                        ToGlobal(symbol.ContainingNamespace.ToString(), symbolType),
+                        _systemNamespace.Format(primitive),
+                        Namespace.From(symbol.ContainingNamespace).Format(symbolType),
                         symbolType));
                 }
             }
@@ -206,12 +208,27 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         return (voMappings, diagnostics);
     }
 
-    private static string ToGlobal(string @namespace, string typeName) =>
-        @namespace switch
-        {
-            "<global namespace>" => $"global::{typeName}",
-            _ => $"global::{@namespace}.{typeName}"
-        };
-
     private sealed record TypeMap(string InType, string OutType);
+
+    private abstract record Namespace
+    {
+        public abstract string Format(string typeName);
+
+        public sealed record Global : Namespace
+        {
+            public override string Format(string typeName) =>
+                $"global::{typeName}";
+        }
+
+        public sealed record Local(string Value) : Namespace
+        {
+            public override string Format(string typeName) =>
+                $"global::{Value}.{typeName}";
+        }
+    
+        public static Namespace From(INamespaceSymbol symbol) =>
+            symbol.IsGlobalNamespace 
+            ? new Global() 
+            : new Local(symbol.ToString());
+    }
 }
