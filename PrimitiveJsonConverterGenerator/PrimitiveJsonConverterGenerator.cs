@@ -19,33 +19,74 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
            $"{ConstantCode.LoaderName}.g.cs",
            SourceText.From(ConstantCode.Loader, Encoding.UTF8)));
-
-        var provider = context.SyntaxProvider.CreateSyntaxProvider(
-            predicate: static (node, _) =>
-                (node is TypeDeclarationSyntax type && type.AttributeLists.Count > 0),
-            transform: static (n, _) => (TypeDeclarationSyntax)n.Node
-            )
-            .Where(_ => _ is not null);
+        
+        var provider = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "System.Text.Json.Serialization.JsonConverterAttribute",
+                (syntax, _) => true,
+                (ctx, _) => (ctx.TargetNode, ctx.TargetSymbol))
+            .Where(_ => _.TargetNode is TypeDeclarationSyntax type && IsValidSyntax(type) && _.TargetSymbol is INamedTypeSymbol n && IsValidSymbol(n))
+            .Select((pair, _) => (INamedTypeSymbol)pair.TargetSymbol)
+            .Select((symbol, _) => new TypeDescription(
+                symbol.Name,
+                Namespace.From(symbol.ContainingNamespace),
+                symbol.Locations[0],
+                symbol.GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Where(_ => _.MethodKind == MethodKind.Conversion)
+                    .Where(member => member.Parameters.Length == 1
+                        && IsInteresting(member.Parameters[0].Type.Name, symbol.Name)
+                        && IsInteresting(member.ReturnType.Name, symbol.Name)
+                    )
+                    .Select(member => new TypeMap(member.Parameters[0].Type.Name, member.ReturnType.Name))
+                    .ToImmutableArray()
+                ))
+            .WithComparer(new TypeDescriptionComparer());
 
         var compilation = context.CompilationProvider.Combine(provider.Collect());
 
         context.RegisterSourceOutput(compilation, (spc, source) => Execute(spc, source.Left, source.Right));
     }
 
-    private void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDeclarationSyntax> nodes)
+    private static string[] _supportedTypes = new[]
+    {
+        nameof(Int16),
+        nameof(Int32),
+        nameof(Int64),
+
+        nameof(UInt16),
+        nameof(UInt32),
+        nameof(UInt64),
+
+        nameof(Single),
+        nameof(Double),
+
+        nameof(String),
+        nameof(Guid)
+    };
+
+    private static bool IsInteresting(string typeName, string symbolName) =>
+        _supportedTypes.Contains(typeName) || typeName == symbolName;
+
+    internal sealed class TypeDescriptionComparer : IEqualityComparer<TypeDescription>
+    {
+        bool IEqualityComparer<TypeDescription>.Equals(TypeDescription x, TypeDescription y) =>
+            x.TypeName == y.TypeName 
+            && x.Namespace == y.Namespace 
+            && x.Location == y.Location 
+            && x.TypeMaps.SequenceEqual(y.TypeMaps);
+
+        int IEqualityComparer<TypeDescription>.GetHashCode(TypeDescription obj) =>
+            obj.GetHashCode();
+    }
+
+    private sealed record TypeDescription(string TypeName, Namespace Namespace, Location Location, ImmutableArray<TypeMap> TypeMaps);
+
+    private void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDescription> descriptions)
     {
         //if (Debugger.IsAttached is false) Debugger.Launch();
 
-        var typeSymbols = new List<INamedTypeSymbol>();
-        foreach (var node in nodes)
-        {
-            if (IsValidSyntax(node) && TryGetSymbol(compilation, node, out var symbol) && symbol is not null)
-            {
-                typeSymbols.Add(symbol);
-            }
-        }
-
-        var (voMappings, diagnostics) = AnalyzeSymbols(typeSymbols);
+        var (voMappings, diagnostics) = AnalyzeSymbols(descriptions);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -64,13 +105,10 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         context.AddSource($"{ConstantCode.LoaderName}2.g.cs", loaderCode);
     }
 
-    private static bool TryGetSymbol(Compilation compilation, TypeDeclarationSyntax node, out INamedTypeSymbol? symbol)
+    private static bool IsValidSymbol(INamedTypeSymbol symbol)
     {
         bool isValid;
 
-        var model = compilation.GetSemanticModel(node.SyntaxTree);
-
-        symbol = (INamedTypeSymbol?)model.GetDeclaredSymbol(node);
         if (symbol is not null)
         {
             var attributes = symbol.GetAttributes();
@@ -115,78 +153,37 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         return isProperSyntax;
     }
 
-    private static string[] _supportedTypes = new[]
-    {
-        nameof(Int16),
-        nameof(Int32),
-        nameof(Int64),
-
-        nameof(UInt16),
-        nameof(UInt32),
-        nameof(UInt64),
-
-        nameof(Single),
-        nameof(Double),
-
-        nameof(String),
-        nameof(Guid)
-    };
-
     private static Namespace _systemNamespace = new Namespace.Local("System");
 
-    private static (IEnumerable<ValueObjectMapping> mappings, IEnumerable<Diagnostic> diagnostics) AnalyzeSymbols(List<INamedTypeSymbol> typeSymbols)
+    private static (IEnumerable<ValueObjectMapping> mappings, IEnumerable<Diagnostic> diagnostics) AnalyzeSymbols(
+        ImmutableArray<TypeDescription> typeDescriptions)
     {
         var diagnostics = new List<Diagnostic>();
         var voMappings = new List<ValueObjectMapping>();
 
-        foreach (var symbol in typeSymbols)
+        foreach (var typeDescription in typeDescriptions)
         {
-            var members = symbol.GetMembers()
-                .OfType<IMethodSymbol>()
-                .Where(_ => _.MethodKind == MethodKind.Conversion)
-                .ToArray();
-
-            var symbolType = symbol.Name;
-
-            var interestingTypes = new string[_supportedTypes.Length + 1];
-            Array.Copy(_supportedTypes, interestingTypes, _supportedTypes.Length);
-            interestingTypes[_supportedTypes.Length] = symbolType;
-
-            var maps = new Dictionary<TypeMap, IMethodSymbol>();
-
-            foreach (var member in members)
-            {
-                if (
-                    member.Parameters is [var param]
-                    && interestingTypes.Contains(param.Type.Name)
-                    && interestingTypes.Contains(member.ReturnType.Name)
-                    )
-                {
-                    maps.Add(new(param.Type.Name, member.ReturnType.Name), member);
-                }
-            }
-
             var used = new List<TypeMap>();
             var mappings = new List<ValueObjectMapping>();
-            foreach (var map in maps.Keys)
+            foreach (var map in typeDescription.TypeMaps)
             {
                 var (@in, @out) = map;
                 var inverse = new TypeMap(@out, @in);
                 if (used.Contains(map) is false
                     && used.Contains(inverse) is false
-                    && maps.TryGetValue(inverse, out var path))
+                    && typeDescription.TypeMaps.Contains(inverse))
                 {
                     used.Add(inverse);
                     used.Add(map);
                     var primitive =
-                        map.InType == symbolType
+                        map.InType == typeDescription.TypeName
                             ? map.OutType
                             : map.InType;
 
                     mappings.Add(new(
                         _systemNamespace.Format(primitive),
-                        Namespace.From(symbol.ContainingNamespace).Format(symbolType),
-                        symbolType));
+                        typeDescription.Namespace.Format(typeDescription.TypeName),
+                        typeDescription.TypeName));
                 }
             }
 
@@ -201,7 +198,7 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
                     0 => Diagnostics.NoConversionOperators,
                     _ => Diagnostics.TooManyConversionOperators
                 };
-                diagnostics.Add(Diagnostic.Create(desc, symbol.Locations[0], new[] { symbolType }));
+                diagnostics.Add(Diagnostic.Create(desc, typeDescription.Location, new[] { typeDescription.TypeName }));
             }
         }
 
@@ -225,10 +222,10 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
             public override string Format(string typeName) =>
                 $"global::{Value}.{typeName}";
         }
-    
+
         public static Namespace From(INamespaceSymbol symbol) =>
-            symbol.IsGlobalNamespace 
-            ? new Global() 
+            symbol.IsGlobalNamespace
+            ? new Global()
             : new Local(symbol.ToString());
     }
 }
