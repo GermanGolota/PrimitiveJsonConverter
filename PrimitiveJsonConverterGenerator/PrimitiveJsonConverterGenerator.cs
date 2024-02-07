@@ -16,36 +16,37 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
            $"{ConstantCode.FactoryName}.g.cs",
            SourceText.From(ConstantCode.Factory, Encoding.UTF8)));
 
-
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
            $"{ConstantCode.LoaderName}.g.cs",
            SourceText.From(ConstantCode.Loader, Encoding.UTF8)));
-
-        var provider = context.SyntaxProvider.CreateSyntaxProvider(
-            predicate: static (node, _) =>
-                (node is TypeDeclarationSyntax type && type.AttributeLists.Count > 0),
-            transform: static (n, _) => n.Node as TypeDeclarationSyntax
-            )
-            .Where(_ => _ is not null);
+        
+        var provider = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "System.Text.Json.Serialization.JsonConverterAttribute",
+                (syntax, _) => true,
+                (ctx, _) => (ctx.TargetNode, ctx.TargetSymbol))
+            .Where(_ => _.TargetNode is TypeDeclarationSyntax type && IsValidSyntax(type) && _.TargetSymbol is INamedTypeSymbol n && IsValidSymbol(n))
+            .Select((pair, _) => (INamedTypeSymbol)pair.TargetSymbol)
+            .Select((symbol, _) => new TypeDescription(
+                symbol.Name,
+                Namespace.From(symbol.ContainingNamespace),
+                symbol.Locations[0],
+                symbol.GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Where(_ => _.MethodKind == MethodKind.Conversion)
+                    .Where(member => member.Parameters.Length == 1
+                        && IsInteresting(member.Parameters[0].Type.Name, symbol.Name)
+                        && IsInteresting(member.ReturnType.Name, symbol.Name)
+                    )
+                    .Select(member => new TypeMap(member.Parameters[0].Type.Name, member.ReturnType.Name))
+                    .ToImmutableArray()
+                ))
+            .WithComparer(new TypeDescriptionComparer());
 
         var compilation = context.CompilationProvider.Combine(provider.Collect());
 
         context.RegisterSourceOutput(compilation, (spc, source) => Execute(spc, source.Left, source.Right));
     }
-
-    private static readonly DiagnosticDescriptor NoConversionOperators = new DiagnosticDescriptor(id: "PRIM001",
-                                                                                              title: "Not enough conversion operators",
-                                                                                              messageFormat: $"Type '{{0}}' must contain a pair of conversion operators to use '{ConstantCode.FactoryName}'",
-                                                                                              category: "PrimitiveGen",
-                                                                                              DiagnosticSeverity.Warning,
-                                                                                              isEnabledByDefault: true);
-
-    private static readonly DiagnosticDescriptor TooManyConversionOperators = new DiagnosticDescriptor(id: "PRIM002",
-                                                                                             title: "Too many conversion operators",
-                                                                                             messageFormat: $"Type '{{0}}' must contain only one pair of conversion operators to use '{ConstantCode.FactoryName}'",
-                                                                                             category: "PrimitiveGen",
-                                                                                             DiagnosticSeverity.Warning,
-                                                                                             isEnabledByDefault: true);
 
     private static string[] _supportedTypes = new[]
     {
@@ -64,87 +65,28 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         nameof(Guid)
     };
 
-    private void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDeclarationSyntax> nodes)
+    private static bool IsInteresting(string typeName, string symbolName) =>
+        _supportedTypes.Contains(typeName) || typeName == symbolName;
+
+    internal sealed class TypeDescriptionComparer : IEqualityComparer<TypeDescription>
+    {
+        bool IEqualityComparer<TypeDescription>.Equals(TypeDescription x, TypeDescription y) =>
+            x.TypeName == y.TypeName 
+            && x.Namespace == y.Namespace 
+            && x.Location == y.Location 
+            && x.TypeMaps.SequenceEqual(y.TypeMaps);
+
+        int IEqualityComparer<TypeDescription>.GetHashCode(TypeDescription obj) =>
+            obj.GetHashCode();
+    }
+
+    private sealed record TypeDescription(string TypeName, Namespace Namespace, Location Location, ImmutableArray<TypeMap> TypeMaps);
+
+    private void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDescription> descriptions)
     {
         //if (Debugger.IsAttached is false) Debugger.Launch();
 
-        var typeSymbols = new List<INamedTypeSymbol>();
-        foreach (var node in nodes)
-        {
-            if (IsValidSyntax(node) && TryGetSymbol(compilation, node, out var symbol) && symbol is not null)
-            {
-                typeSymbols.Add(symbol);
-            }
-        }
-
-        var diagnostics = new List<Diagnostic>();
-        var voMappings = new List<VoMapping>();
-
-        foreach (var symbol in typeSymbols)
-        {
-            var members = symbol.GetMembers()
-                .OfType<IMethodSymbol>()
-                .Where(_ => _.MethodKind == MethodKind.Conversion)
-                .ToArray();
-
-            var symbolType = symbol.Name;
-
-            var interestingTypes = new string[_supportedTypes.Length + 1];
-            Array.Copy(_supportedTypes, interestingTypes, _supportedTypes.Length);
-            interestingTypes[_supportedTypes.Length] = symbolType;
-
-            var maps = new Dictionary<TypeMap, IMethodSymbol>();
-
-            foreach (var member in members)
-            {
-                if (
-                    member.Parameters is [var param]
-                    && interestingTypes.Contains(param.Type.Name)
-                    && interestingTypes.Contains(member.ReturnType.Name)
-                    )
-                {
-                    maps.Add(new(param.Type.Name, member.ReturnType.Name), member);
-                }
-            }
-
-            var used = new List<TypeMap>();
-            var mappings = new List<VoMapping>();
-            foreach (var map in maps.Keys)
-            {
-                var (@in, @out) = map;
-                var inverse = new TypeMap(@out, @in);
-                if (used.Contains(map) is false
-                    && used.Contains(inverse) is false
-                    && maps.TryGetValue(inverse, out var path))
-                {
-                    used.Add(inverse);
-                    used.Add(map);
-                    var primitive =
-                        map.InType == symbolType
-                            ? map.OutType
-                            : map.InType;
-                    //TODO: May need to be updated
-                    mappings.Add(new(
-                        ToGlobal("System", primitive),
-                        ToGlobal(symbol.ContainingNamespace.ToString(), symbolType),
-                        symbolType));
-                }
-            }
-
-            if (mappings is [var mapping])
-            {
-                voMappings.Add(mapping);
-            }
-            else
-            {
-                var desc = mappings.Count switch
-                {
-                    0 => NoConversionOperators,
-                    _ => TooManyConversionOperators
-                };
-                diagnostics.Add(Diagnostic.Create(desc, symbol.Locations[0], new[] { symbolType }));
-            }
-        }
+        var (voMappings, diagnostics) = AnalyzeSymbols(descriptions);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -154,127 +96,19 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         var classes = new List<string>();
         foreach (var mapping in voMappings)
         {
-            var (code, className) = BuildCode(mapping);
+            var (code, className) = SerializerWriter.WriteCode(mapping);
             context.AddSource($"{className}.g.cs", code);
             classes.Add(className);
         }
 
-        var loaderCode = BuildLoader(classes);
+        var loaderCode = LoaderWriter.WriteCode(classes);
         context.AddSource($"{ConstantCode.LoaderName}2.g.cs", loaderCode);
     }
 
-    private string BuildLoader(List<string> classes)
-    {
-        var codeBuilder = new StringBuilder();
-        codeBuilder.AppendLine("﻿// <auto-generated />");
-        codeBuilder.AppendLine("﻿#nullable enable");
-        codeBuilder.AppendLine("﻿using System.Text.Json;");
-        codeBuilder.AppendLine($"namespace {nameof(PrimitiveJsonConverterGenerator)}");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine($"internal static partial class {ConstantCode.LoaderName}");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine($"public static partial void Load()");
-        codeBuilder.AppendLine("{");
-        foreach (var @class in classes)
-        {
-            codeBuilder.AppendLine($"{@class}.Load();");
-        }
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("﻿#nullable disable");
-        return codeBuilder.ToString();
-    }
-
-    private sealed record Method(string TokenType, string ReadMethod, string WriteMethod, bool IsValue);
-
-    private static Dictionary<string, Method> _typeToMethods = new Dictionary<string, Method>()
-    {
-        { "global::System.Int16", new("Number", "GetInt16", "WriteNumberValue", true)},
-        { "global::System.Int32", new("Number", "GetInt32", "WriteNumberValue", true)},
-        { "global::System.Int64", new("Number", "GetInt64", "WriteNumberValue", true)},
-
-        { "global::System.UInt16", new("Number", "GetUInt16", "WriteNumberValue", true)},
-        { "global::System.UInt32", new("Number", "GetUInt32", "WriteNumberValue", true)},
-        { "global::System.UInt64", new("Number", "GetUInt64", "WriteNumberValue", true)},
-
-        { "global::System.Single", new("Number", "GetSingle", "WriteNumberValue", true)},
-        { "global::System.Double", new("Number", "GetDouble", "WriteNumberValue", true)},
-
-        { "global::System.String", new("String", "GetString", "WriteStringValue", false)},
-        { "global::System.Guid", new("String", "GetGuid", "WriteStringValue", true)},
-    };
-
-    private (string Code, string ClassName) BuildCode(VoMapping mapping)
-    {
-        var methods = _typeToMethods[mapping.PrimitiveType];
-
-        var className = $"{mapping.ClassName}PrimitiveJsonConverter";
-        var codeBuilder = new StringBuilder();
-        codeBuilder.AppendLine("﻿// <auto-generated />");
-        codeBuilder.AppendLine("﻿using System.Text.Json;");
-        codeBuilder.AppendLine("﻿#nullable enable");
-        codeBuilder.AppendLine($"namespace {nameof(PrimitiveJsonConverterGenerator)}");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine($"internal sealed class {className} : global::System.Text.Json.Serialization.JsonConverter<{mapping.ClassType}>");
-        codeBuilder.AppendLine("{");
-
-        codeBuilder.AppendLine($"public static void Load()");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine($"global::PrimitiveJsonConverterGenerator.PrimitiveJsonConverterFactory.Converters.Add(typeof({mapping.ClassType}), new {className}());");
-        codeBuilder.AppendLine("}");
-
-        codeBuilder.AppendLine("public override global::System.Boolean CanConvert(global::System.Type typeToConvert)");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine($"return typeToConvert == typeof({mapping.ClassType});");
-        codeBuilder.AppendLine("}");
-
-        codeBuilder.AppendLine($"public override {mapping.ClassType}? Read(ref Utf8JsonReader reader, global::System.Type typeToConvert, JsonSerializerOptions options)");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine("reader.Read();");
-        codeBuilder.AppendLine($"if (reader.TokenType == JsonTokenType.{methods.TokenType}) return ({mapping.ClassType}?) reader.{methods.ReadMethod}();");
-        codeBuilder.AppendLine($"return null;");
-        codeBuilder.AppendLine("}");
-
-        codeBuilder.AppendLine($" public override void Write(Utf8JsonWriter writer, {mapping.ClassType} value, JsonSerializerOptions options)");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine($"{mapping.PrimitiveType}? temp = ({mapping.PrimitiveType}?)value;");
-        var nullCheck = methods.IsValue ? ".HasValue" : " is not null";
-        codeBuilder.AppendLine($"if(temp{nullCheck})");
-        codeBuilder.AppendLine("{");
-        var valueGetter = methods.IsValue ? ".Value" : "!";
-        codeBuilder.AppendLine($"writer.{methods.WriteMethod}(temp{valueGetter});");
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("else");
-        codeBuilder.AppendLine("{");
-        codeBuilder.AppendLine("writer.WriteNullValue();");
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("}");
-
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("}");
-        codeBuilder.AppendLine("﻿#nullable disable");
-
-        return (codeBuilder.ToString(), className);
-    }
-
-    private static string ToGlobal(string @namespace, string typeName) =>
-        @namespace switch
-        {
-            "<global namespace>" => $"global::{typeName}",
-            _ => $"global::{@namespace}.{typeName}"
-        };
-
-    private sealed record TypeMap(string InType, string OutType);
-    private sealed record VoMapping(string PrimitiveType, string ClassType, string ClassName);
-
-    private static bool TryGetSymbol(Compilation compilation, TypeDeclarationSyntax node, out INamedTypeSymbol? symbol)
+    private static bool IsValidSymbol(INamedTypeSymbol symbol)
     {
         bool isValid;
 
-        var model = compilation.GetSemanticModel(node.SyntaxTree);
-
-        symbol = (INamedTypeSymbol?)model.GetDeclaredSymbol(node);
         if (symbol is not null)
         {
             var attributes = symbol.GetAttributes();
@@ -317,5 +151,81 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         }
 
         return isProperSyntax;
+    }
+
+    private static Namespace _systemNamespace = new Namespace.Local("System");
+
+    private static (IEnumerable<ValueObjectMapping> mappings, IEnumerable<Diagnostic> diagnostics) AnalyzeSymbols(
+        ImmutableArray<TypeDescription> typeDescriptions)
+    {
+        var diagnostics = new List<Diagnostic>();
+        var voMappings = new List<ValueObjectMapping>();
+
+        foreach (var typeDescription in typeDescriptions)
+        {
+            var used = new List<TypeMap>();
+            var mappings = new List<ValueObjectMapping>();
+            foreach (var map in typeDescription.TypeMaps)
+            {
+                var (@in, @out) = map;
+                var inverse = new TypeMap(@out, @in);
+                if (used.Contains(map) is false
+                    && used.Contains(inverse) is false
+                    && typeDescription.TypeMaps.Contains(inverse))
+                {
+                    used.Add(inverse);
+                    used.Add(map);
+                    var primitive =
+                        map.InType == typeDescription.TypeName
+                            ? map.OutType
+                            : map.InType;
+
+                    mappings.Add(new(
+                        _systemNamespace.Format(primitive),
+                        typeDescription.Namespace.Format(typeDescription.TypeName),
+                        typeDescription.TypeName));
+                }
+            }
+
+            if (mappings is [var mapping])
+            {
+                voMappings.Add(mapping);
+            }
+            else
+            {
+                var desc = mappings.Count switch
+                {
+                    0 => Diagnostics.NoConversionOperators,
+                    _ => Diagnostics.TooManyConversionOperators
+                };
+                diagnostics.Add(Diagnostic.Create(desc, typeDescription.Location, new[] { typeDescription.TypeName }));
+            }
+        }
+
+        return (voMappings, diagnostics);
+    }
+
+    private sealed record TypeMap(string InType, string OutType);
+
+    private abstract record Namespace
+    {
+        public abstract string Format(string typeName);
+
+        public sealed record Global : Namespace
+        {
+            public override string Format(string typeName) =>
+                $"global::{typeName}";
+        }
+
+        public sealed record Local(string Value) : Namespace
+        {
+            public override string Format(string typeName) =>
+                $"global::{Value}.{typeName}";
+        }
+
+        public static Namespace From(INamespaceSymbol symbol) =>
+            symbol.IsGlobalNamespace
+            ? new Global()
+            : new Local(symbol.ToString());
     }
 }
