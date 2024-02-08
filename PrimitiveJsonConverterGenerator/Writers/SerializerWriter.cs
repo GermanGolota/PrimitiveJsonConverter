@@ -6,23 +6,31 @@ namespace PrimitiveJsonConverterGenerator;
 
 internal static class SerializerWriter
 {
-    private sealed record SerializationMethods(string TokenType, string ReadMethod, string WriteMethod, bool IsValue);
+    private sealed record SerializationMethods(string[] TokenTypes, string ReadMethod, string WriteMethod, bool IsValue);
 
     private static Dictionary<string, SerializationMethods> _typeToMethods = new Dictionary<string, SerializationMethods>()
     {
-        { "global::System.Int16", new("Number", "GetInt16", "WriteNumberValue", true)},
-        { "global::System.Int32", new("Number", "GetInt32", "WriteNumberValue", true)},
-        { "global::System.Int64", new("Number", "GetInt64", "WriteNumberValue", true)},
+        { "global::System.Int16", new(["Number"], "GetInt16", "WriteNumberValue", true)},
+        { "global::System.Int32", new(["Number"], "GetInt32", "WriteNumberValue", true)},
+        { "global::System.Int64", new(["Number"], "GetInt64", "WriteNumberValue", true)},
 
-        { "global::System.UInt16", new("Number", "GetUInt16", "WriteNumberValue", true)},
-        { "global::System.UInt32", new("Number", "GetUInt32", "WriteNumberValue", true)},
-        { "global::System.UInt64", new("Number", "GetUInt64", "WriteNumberValue", true)},
+        { "global::System.UInt16", new(["Number"], "GetUInt16", "WriteNumberValue", true)},
+        { "global::System.UInt32", new(["Number"], "GetUInt32", "WriteNumberValue", true)},
+        { "global::System.UInt64", new(["Number"], "GetUInt64", "WriteNumberValue", true)},
 
-        { "global::System.Single", new("Number", "GetSingle", "WriteNumberValue", true)},
-        { "global::System.Double", new("Number", "GetDouble", "WriteNumberValue", true)},
+        { "global::System.Single", new(["Number"], "GetSingle", "WriteNumberValue", true)},
+        { "global::System.Double", new(["Number"], "GetDouble", "WriteNumberValue", true)},
+        { "global::System.Decimal", new(["Number"], "GetDecimal", "WriteNumberValue", true)},
 
-        { "global::System.String", new("String", "GetString", "WriteStringValue", false)},
-        { "global::System.Guid", new("String", "GetGuid", "WriteStringValue", true)},
+        { "global::System.String", new(["String"], "GetString", "WriteStringValue", false)},
+        { "global::System.Guid", new(["String"], "GetGuid", "WriteStringValue", true)},
+
+        { "global::System.Boolean", new(["True", "False"], "GetBoolean", "WriteBooleanValue", true)},
+        
+        { "global::System.Byte", new(["Number"], "GetByte", "WriteNumberValue", true)},
+
+        { "global::System.DateTime", new(["String"], "GetDateTime", "WriteStringValue", true)},
+        { "global::System.DateTimeOffset", new(["String"], "GetDateTimeOffset", "WriteStringValue", true)},
     };
 
     public static (string Code, string ClassName) WriteCode(ValueObjectMapping mapping)
@@ -59,7 +67,21 @@ internal static class SerializerWriter
         source.WriteLine($"public override {mapping.ClassType}? Read(ref Utf8JsonReader reader, global::System.Type typeToConvert, JsonSerializerOptions options)");
         source.WriteLine("{");
         source.Indent++;
-        source.WriteLine($"if (reader.TokenType == JsonTokenType.{methods.TokenType}) return ({mapping.ClassType}?) reader.{methods.ReadMethod}();");
+        source.Write("if (");
+        for (var i = 0; i < methods.TokenTypes.Length; i++)
+        {
+            var tokenType = methods.TokenTypes[i];
+            source.Write($"reader.TokenType == JsonTokenType.{tokenType}");
+            if (i != methods.TokenTypes.Length - 1)
+            {
+                source.Write(" || ");
+            }
+        }
+        source.WriteLine(")");
+        source.Indent++;
+        source.WriteLine($"return ({mapping.ClassType}?) reader.{methods.ReadMethod}();");
+        source.Indent--;
+        source.WriteLine();
         source.WriteLine($"return null;");
         source.Indent--;
         source.WriteLine("}");
