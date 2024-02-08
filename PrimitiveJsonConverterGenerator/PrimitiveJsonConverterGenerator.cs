@@ -54,15 +54,22 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         nameof(Int32),
         nameof(Int64),
 
+        nameof(Byte),
         nameof(UInt16),
         nameof(UInt32),
         nameof(UInt64),
 
         nameof(Single),
         nameof(Double),
+        nameof(Decimal),
 
         nameof(String),
-        nameof(Guid)
+        nameof(Guid),
+
+        nameof(Boolean),
+
+        nameof(DateTime),
+        nameof(DateTimeOffset)
     };
 
     private static bool IsInteresting(string typeName, string symbolName) =>

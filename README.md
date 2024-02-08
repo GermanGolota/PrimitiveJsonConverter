@@ -25,3 +25,13 @@ public sealed record DiceRoll
     public static implicit operator int(DiceRoll value) => value.Value;
 }
 ```
+
+Currently supported types:
+- string
+- Guid
+- short, int, long
+- ushort, uint, ulong
+- double, float, decimal
+- DateTime, DateTimeOffset
+- bool
+- byte
