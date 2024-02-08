@@ -78,9 +78,11 @@ internal static class SerializerWriter
             }
         }
         source.WriteLine(")");
+        source.WriteLine("{");
         source.Indent++;
         source.WriteLine($"return ({mapping.ClassType}?) reader.{methods.ReadMethod}();");
         source.Indent--;
+        source.WriteLine("}");
         source.WriteLine();
         source.WriteLine($"return null;");
         source.Indent--;
@@ -90,7 +92,7 @@ internal static class SerializerWriter
         source.Indent++;
         source.WriteLine($"{mapping.PrimitiveType}? temp = ({mapping.PrimitiveType}?)value;");
         var nullCheck = methods.IsValue ? ".HasValue" : " is not null";
-        source.WriteLine($"if(temp{nullCheck})");
+        source.WriteLine($"if (temp{nullCheck})");
         source.WriteLine("{");
         source.Indent++;
         var valueGetter = methods.IsValue ? ".Value" : "!";

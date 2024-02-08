@@ -16,14 +16,17 @@ namespace PrimitiveJsonConverterGenerator
 		}
 		public override global::DiceRoll? Read(ref Utf8JsonReader reader, global::System.Type typeToConvert, JsonSerializerOptions options)
 		{
-			reader.Read();
-			if (reader.TokenType == JsonTokenType.Number) return (global::DiceRoll?) reader.GetInt32();
+			if (reader.TokenType == JsonTokenType.Number)
+			{
+				return (global::DiceRoll?) reader.GetInt32();
+			}
+			
 			return null;
 		}
 		public override void Write(Utf8JsonWriter writer, global::DiceRoll value, JsonSerializerOptions options)
 		{
 			global::System.Int32? temp = (global::System.Int32?)value;
-			if(temp.HasValue)
+			if (temp.HasValue)
 			{
 				writer.WriteNumberValue(temp.Value);
 			}
