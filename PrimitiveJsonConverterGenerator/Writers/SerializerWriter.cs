@@ -59,7 +59,6 @@ internal static class SerializerWriter
         source.WriteLine($"public override {mapping.ClassType}? Read(ref Utf8JsonReader reader, global::System.Type typeToConvert, JsonSerializerOptions options)");
         source.WriteLine("{");
         source.Indent++;
-        source.WriteLine("reader.Read();");
         source.WriteLine($"if (reader.TokenType == JsonTokenType.{methods.TokenType}) return ({mapping.ClassType}?) reader.{methods.ReadMethod}();");
         source.WriteLine($"return null;");
         source.Indent--;
