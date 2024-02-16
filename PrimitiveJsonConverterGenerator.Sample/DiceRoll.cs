@@ -1,7 +1,7 @@
-﻿using System.Text.Json.Serialization;
+﻿using PrimitiveJsonConverter;
 
-[JsonConverter(typeof(PrimitiveJsonConverterGenerator.PrimitiveJsonConverterFactory))]
-public sealed record DiceRoll
+[JsonPrimitive]
+public sealed partial record DiceRoll
 {
     public DiceRoll(int value)
     {

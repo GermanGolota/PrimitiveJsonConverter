@@ -1,10 +1,10 @@
-﻿using System.Text.Json.Serialization;
-using PrimitiveJsonConverterGenerator;
+﻿using PrimitiveJsonConverter;
+using System.Text.Json.Serialization;
 
 namespace PrimitiveJsonConverterGenerator.Sample;
 
-[JsonConverter(typeof(PrimitiveJsonConverterFactory))]
-public sealed record FileName
+[JsonPrimitive]
+public sealed partial record FileName
 {
     public FileName(string value)
     {

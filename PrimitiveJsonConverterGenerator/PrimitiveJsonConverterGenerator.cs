@@ -1,9 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Text;
 
 namespace PrimitiveJsonConverterGenerator;
 
@@ -12,24 +10,29 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-           $"{ConstantCode.FactoryName}.g.cs",
-           SourceText.From(ConstantCode.Factory, Encoding.UTF8)));
-
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-           $"{ConstantCode.LoaderName}.g.cs",
-           SourceText.From(ConstantCode.Loader, Encoding.UTF8)));
-        
         var provider = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                "System.Text.Json.Serialization.JsonConverterAttribute",
+                "PrimitiveJsonConverter.JsonPrimitiveAttribute",
                 (syntax, _) => true,
                 (ctx, _) => (ctx.TargetNode, ctx.TargetSymbol))
-            .Where(_ => _.TargetNode is TypeDeclarationSyntax type && IsValidSyntax(type) && _.TargetSymbol is INamedTypeSymbol n && IsValidSymbol(n))
-            .Select((pair, _) => (INamedTypeSymbol)pair.TargetSymbol)
-            .Select((symbol, _) => new TypeDescription(
+            .Where(_ => _.TargetNode is TypeDeclarationSyntax type
+                        && _.TargetSymbol is INamedTypeSymbol n
+                        && IsValidSymbol(n))
+            .Select((pair, _) => BuildDescription((INamedTypeSymbol)pair.TargetSymbol, (TypeDeclarationSyntax)pair.TargetNode))
+            .WithComparer(new TypeDescriptionComparer());
+
+        var compilation = context.CompilationProvider.Combine(provider.Collect());
+
+        context.RegisterSourceOutput(compilation, (spc, source) => Execute(spc, source.Left, source.Right));
+    }
+
+    private static TypeDescription BuildDescription(INamedTypeSymbol symbol, TypeDeclarationSyntax syntax) =>
+        new TypeDescription(
                 symbol.Name,
                 Namespace.From(symbol.ContainingNamespace),
+                symbol.DeclaredAccessibility,
+                syntax.GetTypeKind(),
+                syntax.Modifiers.Any(SyntaxKind.PartialKeyword),
                 symbol.Locations[0],
                 symbol.GetMembers()
                     .OfType<IMethodSymbol>()
@@ -40,13 +43,7 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
                     )
                     .Select(member => new TypeMap(member.Parameters[0].Type.Name, member.ReturnType.Name))
                     .ToImmutableArray()
-                ))
-            .WithComparer(new TypeDescriptionComparer());
-
-        var compilation = context.CompilationProvider.Combine(provider.Collect());
-
-        context.RegisterSourceOutput(compilation, (spc, source) => Execute(spc, source.Left, source.Right));
-    }
+                );
 
     private static string[] _supportedTypes = new[]
     {
@@ -78,16 +75,26 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
     internal sealed class TypeDescriptionComparer : IEqualityComparer<TypeDescription>
     {
         bool IEqualityComparer<TypeDescription>.Equals(TypeDescription x, TypeDescription y) =>
-            x.TypeName == y.TypeName 
-            && x.Namespace == y.Namespace 
-            && x.Location == y.Location 
+            x.TypeName == y.TypeName
+            && x.Namespace == y.Namespace
+            && x.Accessibility == y.Accessibility
+            && x.IsPartial == y.IsPartial
+            && x.Kind == y.Kind
+            && x.Location == y.Location
             && x.TypeMaps.SequenceEqual(y.TypeMaps);
 
         int IEqualityComparer<TypeDescription>.GetHashCode(TypeDescription obj) =>
             obj.GetHashCode();
     }
 
-    private sealed record TypeDescription(string TypeName, Namespace Namespace, Location Location, ImmutableArray<TypeMap> TypeMaps);
+    private sealed record TypeDescription(
+        string TypeName,
+        Namespace Namespace,
+        Accessibility Accessibility,
+        TypeKind Kind,
+        bool IsPartial,
+        Location Location,
+        ImmutableArray<TypeMap> TypeMaps);
 
     private void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<TypeDescription> descriptions)
     {
@@ -100,16 +107,13 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
             context.ReportDiagnostic(diagnostic);
         }
 
-        var classes = new List<string>();
         foreach (var mapping in voMappings)
         {
             var (code, className) = SerializerWriter.WriteCode(mapping);
+            var (voCode, voClassName) = VoWriter.WriteCode(mapping.ClassType, className);
             context.AddSource($"{className}.g.cs", code);
-            classes.Add(className);
+            context.AddSource($"{voClassName}.g.cs", voCode);
         }
-
-        var loaderCode = LoaderWriter.WriteCode(classes);
-        context.AddSource($"{ConstantCode.LoaderName}2.g.cs", loaderCode);
     }
 
     private static bool IsValidSymbol(INamedTypeSymbol symbol)
@@ -122,12 +126,8 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
             isValid = false;
             foreach (var attribute in attributes)
             {
-                if (attribute.ConstructorArguments is [var converterType]
-                    && converterType.Value is INamedTypeSymbol converterTypeName
-                    && converterTypeName.Name == ConstantCode.FactoryName
-                    && converterTypeName.ContainingNamespace.ToString() == "PrimitiveJsonConverterGenerator"
-                    && attribute.AttributeClass is not null
-                    && attribute.AttributeClass.ContainingNamespace.ToString() == "System.Text.Json.Serialization"
+                if (attribute.AttributeClass is not null
+                    && attribute.AttributeClass.ContainingNamespace.ToString() == "PrimitiveJsonConverter"
                     )
                 {
                     isValid = true;
@@ -141,23 +141,6 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         }
 
         return isValid;
-    }
-
-    private static bool IsValidSyntax(TypeDeclarationSyntax node)
-    {
-        var isProperSyntax = false;
-        foreach (var attribute in node.AttributeLists.SelectMany(_ => _.Attributes))
-        {
-            if (attribute.Name.ToString() == "JsonConverter"
-                && attribute.ArgumentList is not null
-                && attribute.ArgumentList.Arguments.Count == 1)
-            {
-                isProperSyntax = true;
-                break;
-            }
-        }
-
-        return isProperSyntax;
     }
 
     private static Namespace _systemNamespace = new Namespace.Local("System");
@@ -189,14 +172,21 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
 
                     mappings.Add(new(
                         _systemNamespace.Format(primitive),
-                        typeDescription.Namespace.Format(typeDescription.TypeName),
+                        new(typeDescription.TypeName, typeDescription.Kind, typeDescription.Namespace, typeDescription.Accessibility),
                         typeDescription.TypeName));
                 }
             }
 
             if (mappings is [var mapping])
             {
-                voMappings.Add(mapping);
+                if (typeDescription.IsPartial)
+                {
+                    voMappings.Add(mapping);
+                }
+                else
+                {
+                    diagnostics.Add(Diagnostic.Create(Diagnostics.NotPartial, typeDescription.Location, new[] { typeDescription.TypeName }));
+                }
             }
             else
             {
@@ -214,25 +204,4 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
 
     private sealed record TypeMap(string InType, string OutType);
 
-    private abstract record Namespace
-    {
-        public abstract string Format(string typeName);
-
-        public sealed record Global : Namespace
-        {
-            public override string Format(string typeName) =>
-                $"global::{typeName}";
-        }
-
-        public sealed record Local(string Value) : Namespace
-        {
-            public override string Format(string typeName) =>
-                $"global::{Value}.{typeName}";
-        }
-
-        public static Namespace From(INamespaceSymbol symbol) =>
-            symbol.IsGlobalNamespace
-            ? new Global()
-            : new Local(symbol.ToString());
-    }
 }

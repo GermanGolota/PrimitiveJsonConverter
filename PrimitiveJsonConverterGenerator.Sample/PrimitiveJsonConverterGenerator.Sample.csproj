@@ -8,9 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PrimitiveJsonConverterGenerator\PrimitiveJsonConverterGenerator.csproj" 
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\PrimitiveJsonConverterGenerator\PrimitiveJsonConverterGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\PrimitiveJsonConverter\PrimitiveJsonConverter.csproj" />
   </ItemGroup>
 
 </Project>
