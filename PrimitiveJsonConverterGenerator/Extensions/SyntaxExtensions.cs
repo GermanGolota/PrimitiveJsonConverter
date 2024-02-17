@@ -5,12 +5,12 @@ namespace PrimitiveJsonConverterGenerator;
 
 internal static class SyntaxExtensions
 {
-    public static TypeKind GetTypeKind(this TypeDeclarationSyntax syntax) =>
+    public static TypeDeclarationKind GetTypeKind(this TypeDeclarationSyntax syntax) =>
         syntax switch
         {
-            RecordDeclarationSyntax => TypeKind.Record,
-            StructDeclarationSyntax => TypeKind.Struct,
-            ClassDeclarationSyntax => TypeKind.Class,
+            RecordDeclarationSyntax => TypeDeclarationKind.Record,
+            StructDeclarationSyntax => TypeDeclarationKind.Struct,
+            ClassDeclarationSyntax => TypeDeclarationKind.Class,
             _ => throw new ArgumentOutOfRangeException(nameof(syntax)),
         };
 

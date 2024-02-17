@@ -1,6 +1,6 @@
 ﻿namespace PrimitiveJsonConverterGenerator;
 
-internal enum TypeKind
+internal enum TypeDeclarationKind
 {
     Record,
     Class,

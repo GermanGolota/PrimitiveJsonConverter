@@ -91,7 +91,7 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
         string TypeName,
         Namespace Namespace,
         Accessibility Accessibility,
-        TypeKind Kind,
+        TypeDeclarationKind Kind,
         bool IsPartial,
         Location Location,
         ImmutableArray<TypeMap> TypeMaps);

@@ -4,7 +4,7 @@ namespace PrimitiveJsonConverterGenerator;
 
 internal sealed record TypeDto(
     string Name,
-    TypeKind Kind,
+    TypeDeclarationKind Kind,
     Namespace ContainingNamespace,
     Accessibility Accessibility
     );
