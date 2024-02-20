@@ -1,5 +1,4 @@
 ﻿using PrimitiveJsonConverter;
-using System.Text.Json.Serialization;
 
 namespace PrimitiveJsonConverter.Generator.Sample;
 
