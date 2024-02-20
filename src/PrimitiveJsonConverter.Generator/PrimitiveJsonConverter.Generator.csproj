@@ -8,10 +8,10 @@
     <IsPackable>True</IsPackable>
     <NoWarn>$(NoWarn);NU5128;RS2008</NoWarn>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <RootNamespace>Dunet.Generator</RootNamespace>
+    <RootNamespace>PrimitiveJsonConverter.Generator</RootNamespace>
     <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
