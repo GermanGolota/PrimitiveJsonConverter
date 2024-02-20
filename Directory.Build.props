@@ -3,18 +3,18 @@
 
     <PropertyGroup>
         <Nullable>enable</Nullable>
-        <Version>1.0.5</Version>
+        <Version>1.0.6</Version>
         <SignAssembly>False</SignAssembly>
     </PropertyGroup>
 
     <PropertyGroup Label="Package Attributes">
-        <Authors>GermanGolota</Authors>
+        <Authors>germangolota</Authors>
         <Company />
         <Description>A simple source generator for primitive type json conversion in C#.</Description>
-        <PackageProjectUrl>https://github.com/GermanGolota/PrimitiveJsonConverterGenerator</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/GermanGolota/PrimitiveJsonConverter</PackageProjectUrl>
         <PackageReadmeFile>Readme.md</PackageReadmeFile>
-        <RepositoryUrl>https://github.com/GermanGolota/PrimitiveJsonConverterGenerator</RepositoryUrl>
-        <PackageTags>source; generator;</PackageTags>
+        <RepositoryUrl>https://github.com/GermanGolota/PrimitiveJsonConverter</RepositoryUrl>
+        <PackageTags>source; generator; tagged;</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
         <PackageIcon>favicon.png</PackageIcon>
