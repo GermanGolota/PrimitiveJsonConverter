@@ -4,7 +4,7 @@
 #pragma warning disable 1591
 // Disable CS8604 - Possible null reference argument for parameter.
 #pragma warning disable 8604
-[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.4+649e6fb2549fc496aeddb622b963e3d01ee0cc2a")]
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.4")]
 [global::System.Text.Json.Serialization.JsonConverter(typeof(DiceRollPrimitiveJsonConverter))]
 public partial record DiceRoll
 {
