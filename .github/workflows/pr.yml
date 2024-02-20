@@ -2,7 +2,7 @@ name: Merge Check Build and Test
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 jobs:
   build:
     runs-on: ubuntu-latest
