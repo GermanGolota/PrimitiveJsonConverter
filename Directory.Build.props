@@ -1,0 +1,35 @@
+<Project>
+    <Sdk Name="ViHo.PackAsAnalyzer" Version="1.0.1" />
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <Version>1.0.4</Version>
+        <SignAssembly>False</SignAssembly>
+    </PropertyGroup>
+
+    <PropertyGroup Label="Package Attributes">
+        <Authors>GermanGolota</Authors>
+        <Company />
+        <Description>A simple source generator for primitive type json conversion in C#.</Description>
+        <PackageProjectUrl>https://github.com/GermanGolota/PrimitiveJsonConverterGenerator</PackageProjectUrl>
+        <PackageReadmeFile>Readme.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/GermanGolota/PrimitiveJsonConverterGenerator</RepositoryUrl>
+        <PackageTags>source; generator;</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>favicon.png</PackageIcon>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <Target Name="DotnetToolRestore" BeforeTargets="Restore">
+        <Exec Command="dotnet tool restore" />
+    </Target>
+
+    <ItemGroup Condition=" '$(IsPackable)' == 'true' ">
+        <None Include="$(MSBuildThisFileDirectory)\Readme.md" Pack="true" PackagePath="\"/>
+        <None Include="$(MSBuildThisFileDirectory)\favicon.png" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+</Project>
