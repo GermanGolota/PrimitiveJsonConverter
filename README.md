@@ -4,10 +4,10 @@ using implicit/explicit operators.
 
 The following class would be serialized/deserialized as an integer value.
 ```csharp
-using System.Text.Json.Serialization;
+using PrimitiveJsonConverter;
 
-[JsonConverter(typeof(PrimitiveJsonConverterGenerator.PrimitiveJsonConverterFactory))]
-public sealed record DiceRoll
+[JsonPrimitive]
+public sealed partial record DiceRoll
 {
     public DiceRoll(int value)
     {
