@@ -1,7 +1,7 @@
 ﻿using PrimitiveJsonConverter;
 using System.Text.Json.Serialization;
 
-namespace PrimitiveJsonConverterGenerator.Sample;
+namespace PrimitiveJsonConverter.Generator.Sample;
 
 [JsonPrimitive]
 public sealed partial record FileName

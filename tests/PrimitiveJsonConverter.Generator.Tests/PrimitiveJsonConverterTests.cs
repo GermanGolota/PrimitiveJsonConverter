@@ -1,4 +1,4 @@
-namespace PrimitiveJsonConverterGenerator.Tests;
+namespace PrimitiveJsonConverter.Generator.Tests;
 
 public class PrimitiveJsonConverterTests
 {

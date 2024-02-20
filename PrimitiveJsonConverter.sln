@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrimitiveJsonConverter.Generator.Sample", "sample\PrimitiveJsonConverter.Generator.Sample\PrimitiveJsonConverter.Generator.Sample.csproj", "{E0AE01A8-09B2-46E9-9EFE-D62168B8E229}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrimitiveJsonConverter.Generator.Tests", "tests\PrimitiveJsonConverter.Generator.Tests\PrimitiveJsonConverter.Generator.Tests.csproj", "{C05409C2-A141-4ACE-89EB-E8E6D7BE49F7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrimitiveJsonConverter", "src\PrimitiveJsonConverter\PrimitiveJsonConverter.csproj", "{8493E901-0771-4B08-8615-319B4A1A16BF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrimitiveJsonConverter.Generator", "src\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj", "{129AF344-9DEF-480F-A3C1-88D6D05FA0D6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6DCF2AE6-DD0D-429A-BEF8-933CA8CB682B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E0AE01A8-09B2-46E9-9EFE-D62168B8E229}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0AE01A8-09B2-46E9-9EFE-D62168B8E229}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0AE01A8-09B2-46E9-9EFE-D62168B8E229}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0AE01A8-09B2-46E9-9EFE-D62168B8E229}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C05409C2-A141-4ACE-89EB-E8E6D7BE49F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C05409C2-A141-4ACE-89EB-E8E6D7BE49F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C05409C2-A141-4ACE-89EB-E8E6D7BE49F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C05409C2-A141-4ACE-89EB-E8E6D7BE49F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8493E901-0771-4B08-8615-319B4A1A16BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8493E901-0771-4B08-8615-319B4A1A16BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8493E901-0771-4B08-8615-319B4A1A16BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8493E901-0771-4B08-8615-319B4A1A16BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{129AF344-9DEF-480F-A3C1-88D6D05FA0D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{129AF344-9DEF-480F-A3C1-88D6D05FA0D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{129AF344-9DEF-480F-A3C1-88D6D05FA0D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{129AF344-9DEF-480F-A3C1-88D6D05FA0D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8493E901-0771-4B08-8615-319B4A1A16BF} = {6DCF2AE6-DD0D-429A-BEF8-933CA8CB682B}
+		{129AF344-9DEF-480F-A3C1-88D6D05FA0D6} = {6DCF2AE6-DD0D-429A-BEF8-933CA8CB682B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8987C486-9756-4695-AC37-C12D4546D86F}
+	EndGlobalSection
+EndGlobal

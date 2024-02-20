@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 #nullable enable
-namespace PrimitiveJsonConverterGenerator
+namespace PrimitiveJsonConverter.Generator
 {
     public sealed class PrimitiveJsonConverterFactory : JsonConverterFactory
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace PrimitiveJsonConverterGenerator;
+namespace PrimitiveJsonConverter.Generator;
 
 internal sealed record TypeDto(
     string Name,

@@ -10,9 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PrimitiveJsonConverterGenerator\PrimitiveJsonConverterGenerator.csproj" 
-                      PackAsAnalyzer="true" 
-                      PrivateAssets="all" />
+    <ProjectReference Include="..\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj" PackAsAnalyzer="true" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

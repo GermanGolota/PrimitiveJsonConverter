@@ -1,4 +1,4 @@
-﻿namespace PrimitiveJsonConverterGenerator;
+﻿namespace PrimitiveJsonConverter.Generator;
 
 internal enum TypeDeclarationKind
 {

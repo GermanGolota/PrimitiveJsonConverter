@@ -28,11 +28,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PrimitiveJsonConverterGenerator\PrimitiveJsonConverterGenerator.csproj" />
-  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Snapshots\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj" />
   </ItemGroup>
 
 </Project>

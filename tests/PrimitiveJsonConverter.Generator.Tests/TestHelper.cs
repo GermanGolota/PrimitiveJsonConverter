@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using System.Text.Json.Serialization;
 
-namespace PrimitiveJsonConverterGenerator.Tests;
+namespace PrimitiveJsonConverter.Generator.Tests;
 
 public static class TestHelper
 {

@@ -1,5 +1,5 @@
 ﻿//HintName: PrimitiveJsonConverterLoader.g.cs
-namespace PrimitiveJsonConverterGenerator
+namespace PrimitiveJsonConverter.Generator
 {
     internal static partial class PrimitiveJsonConverterLoader
     {

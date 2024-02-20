@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 
-namespace PrimitiveJsonConverterGenerator;
+namespace PrimitiveJsonConverter.Generator;
 
 [Generator]
 internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator

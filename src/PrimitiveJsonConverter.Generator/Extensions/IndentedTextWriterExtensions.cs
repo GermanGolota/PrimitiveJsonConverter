@@ -1,7 +1,7 @@
 ﻿using System.CodeDom.Compiler;
 using System.Reflection;
 
-namespace PrimitiveJsonConverterGenerator;
+namespace PrimitiveJsonConverter.Generator;
 
 internal static class IndentedTextWriterExtensions
 {

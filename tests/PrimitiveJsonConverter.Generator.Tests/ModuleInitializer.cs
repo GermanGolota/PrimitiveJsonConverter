@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace PrimitiveJsonConverterGenerator.Tests;
+namespace PrimitiveJsonConverter.Generator.Tests;
 
 public static class ModuleInitializer
 {
