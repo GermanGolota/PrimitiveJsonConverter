@@ -35,6 +35,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj" />
+    <ProjectReference Include="..\..\src\PrimitiveJsonConverter\PrimitiveJsonConverter.csproj" />
   </ItemGroup>
 
 </Project>

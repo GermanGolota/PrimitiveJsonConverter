@@ -8,13 +8,13 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj" />
+    <ProjectReference Include="..\..\src\PrimitiveJsonConverter\PrimitiveJsonConverter.csproj" />
+  </ItemGroup>
+
   <!--<ItemGroup>
     <PackageReference Include="PrimitiveJsonConverter" Version="1.0.4" />
   </ItemGroup>
   -->
-  <ItemGroup>
-    <ProjectReference Include="..\PrimitiveJsonConverterGenerator\PrimitiveJsonConverterGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
-    <ProjectReference Include="..\PrimitiveJsonConverter\PrimitiveJsonConverter.csproj" />
-  </ItemGroup>
-
 </Project>
