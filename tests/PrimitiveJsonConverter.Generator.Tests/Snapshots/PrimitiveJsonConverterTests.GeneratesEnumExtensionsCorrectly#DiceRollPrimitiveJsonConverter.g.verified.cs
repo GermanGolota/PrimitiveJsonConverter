@@ -6,7 +6,7 @@
 #pragma warning disable 8604
 ﻿using System.Text.Json;
 ﻿#nullable enable
-[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.4")]
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.5")]
 public sealed class DiceRollPrimitiveJsonConverter : global::System.Text.Json.Serialization.JsonConverter<global::DiceRoll>
 {
 	public override global::System.Boolean CanConvert(global::System.Type typeToConvert)
