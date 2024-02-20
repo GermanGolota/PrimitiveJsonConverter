@@ -37,7 +37,12 @@ internal static class IndentedTextWriterExtensions
     {
         var assembly = typeof(SerializerWriter).Assembly;
         var attribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-        return attribute?.InformationalVersion;
+        var version = attribute?.InformationalVersion;
+        if (version is not null && version.Contains('+'))
+        {
+            version = version.Substring(0, version.IndexOf("+"));
+        }
+        return version;
     }
 
     public static void WritePragmaWarningDisableLine(this IndentedTextWriter writer)
