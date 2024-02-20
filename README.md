@@ -27,11 +27,11 @@ public sealed partial record DiceRoll
 ```
 
 Currently supported types:
-- string
-- Guid
-- short, int, long
-- ushort, uint, ulong
-- double, float, decimal
-- DateTime, DateTimeOffset
-- bool
-- byte
+- `string`
+- `Guid`
+- `short`, `int`, `long`
+- `ushort`, `uint`, `ulong`
+- `double`, `float`, `decimal`
+- `DateTime`, `DateTimeOffset`
+- `bool`
+- `byte`
