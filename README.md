@@ -3,11 +3,40 @@ that converts a Value Object into its primitive form
 using implicit/explicit operators.
 
 The following class would be serialized/deserialized as an integer value.
+
+Approach 1:
 ```csharp
 using PrimitiveJsonConverter;
 
 [JsonPrimitive]
 public sealed partial record DiceRoll
+{
+    public DiceRoll(int value)
+    {
+        if (value <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value));
+        }
+
+        Value = value;
+    }
+
+    public int Value { get; }
+
+    public static implicit operator DiceRoll(int value) => new(value);
+    public static implicit operator int(DiceRoll value) => value.Value;
+}
+```
+
+Approach 2:
+```csharp
+using PrimitiveJsonConverter;
+
+[JsonPrimitiveConverter(typeof(DiceRoll))]
+internal sealed partial class DiceRollConverter {}
+
+[JsonConverter(typeof(DiceRollConverter))]
+public sealed record DiceRoll
 {
     public DiceRoll(int value)
     {
