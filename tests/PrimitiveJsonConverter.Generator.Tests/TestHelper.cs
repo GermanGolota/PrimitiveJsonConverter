@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace PrimitiveJsonConverter.Generator.Tests;
@@ -11,12 +12,15 @@ public static class TestHelper
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 
         var runtimePath = typeof(System.Runtime.AmbiguousImplementationException).Assembly.Location.Replace("System.Private.CoreLib", "System.Runtime");
+        string netStandardPath = GetNetStandardPath();
+
         IEnumerable<PortableExecutableReference> references = new[]
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-              MetadataReference.CreateFromFile(typeof(JsonPrimitiveAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(JsonPrimitiveAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(PrimitiveJsonConverterGenerator).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(JsonConverterAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(netStandardPath),
             MetadataReference.CreateFromFile(runtimePath),
         };
 
@@ -36,5 +40,12 @@ public static class TestHelper
         return Verifier
             .Verify(driver)
             .UseDirectory("Snapshots");
+    }
+
+    private static string GetNetStandardPath()
+    {
+        var linqAssemblyLocation = typeof(Enumerable).GetTypeInfo().Assembly.Location;
+        var coreDir = Directory.GetParent(linqAssemblyLocation);
+        return $"{coreDir!.FullName}{Path.DirectorySeparatorChar}netstandard.dll";
     }
 }

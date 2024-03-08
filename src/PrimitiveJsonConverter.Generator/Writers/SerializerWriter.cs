@@ -26,7 +26,7 @@ internal static class SerializerWriter
         { "global::System.Guid", new(["String"], "GetGuid", "WriteStringValue", true)},
 
         { "global::System.Boolean", new(["True", "False"], "GetBoolean", "WriteBooleanValue", true)},
-        
+
         { "global::System.Byte", new(["Number"], "GetByte", "WriteNumberValue", true)},
 
         { "global::System.DateTime", new(["String"], "GetDateTime", "WriteStringValue", true)},
@@ -37,7 +37,7 @@ internal static class SerializerWriter
     {
         var methods = _typeToMethods[mapping.PrimitiveType];
 
-        var className = $"{mapping.ClassName}PrimitiveJsonConverter";
+        var className = GetClassName(mapping);
 
         var mappingTypeName = mapping.ClassType.ContainingNamespace.Format(mapping.ClassType.Name);
 
@@ -49,9 +49,24 @@ internal static class SerializerWriter
         source.WritePragmaWarningDisableLine();
         source.WriteLine("﻿using System.Text.Json;");
         source.WriteLine("﻿#nullable enable");
-        source.StartNamespace(mapping.ClassType.ContainingNamespace);
+        if (mapping.ConverterType is JsonConverterType.Some s)
+        {
+            source.StartNamespace(s.Type.ContainingNamespace);
+        }
+        else
+        {
+            source.StartNamespace(mapping.ClassType.ContainingNamespace);
+        }
         source.WriteGeneratedCodeAttributeLine();
-        source.WriteLine($"public sealed class {className} : global::System.Text.Json.Serialization.JsonConverter<{mappingTypeName}>");
+        if (mapping.ConverterType is JsonConverterType.Some s2)
+        {
+            var type = s2.Type;
+            source.WriteLine($"{type.Accessibility.ToKeyword()} partial {type.Kind.ToString().ToLower()} {type.Name} : global::System.Text.Json.Serialization.JsonConverter<{mappingTypeName}>");
+        }
+        else
+        {
+            source.WriteLine($"public partial class {className} : global::System.Text.Json.Serialization.JsonConverter<{mappingTypeName}>");
+        }
         source.WriteLine("{");
         source.Indent++;
         source.WriteLine("public override global::System.Boolean CanConvert(global::System.Type typeToConvert)");
@@ -116,5 +131,12 @@ internal static class SerializerWriter
         source.WritePragmaWarningDisableLine();
 
         return (codeBuilder.ToString(), className);
+    }
+
+    private static string GetClassName(ValueObjectMapping mapping)
+    {
+        return mapping.ConverterType is JsonConverterType.Some converter
+            ? converter.Type.Name
+            : $"{mapping.ClassType.Name}PrimitiveJsonConverter";
     }
 }
