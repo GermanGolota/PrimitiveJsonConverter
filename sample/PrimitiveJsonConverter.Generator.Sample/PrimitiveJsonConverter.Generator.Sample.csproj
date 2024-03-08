@@ -9,12 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj" />
+    <ProjectReference Include="..\..\src\PrimitiveJsonConverter.Generator\PrimitiveJsonConverter.Generator.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\src\PrimitiveJsonConverter\PrimitiveJsonConverter.csproj" />
   </ItemGroup>
 
   <!--<ItemGroup>
-    <PackageReference Include="PrimitiveJsonConverter" Version="1.0.4" />
+    <PackageReference Include="PrimitiveJsonConverter" Version="1.0.7" />
   </ItemGroup>
   -->
 </Project>
