@@ -37,7 +37,7 @@ internal static class SerializerWriter
     {
         var methods = _typeToMethods[mapping.PrimitiveType];
 
-        string className = GetClassName(mapping);
+        var className = GetClassName(mapping);
 
         var mappingTypeName = mapping.ClassType.ContainingNamespace.Format(mapping.ClassType.Name);
 
