@@ -18,9 +18,23 @@ internal static class Diagnostics
                                                                                              DiagnosticSeverity.Warning,
                                                                                              isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor NotPartial = new DiagnosticDescriptor(id: "PRIM003",
+    public static readonly DiagnosticDescriptor NotPartialClass = new DiagnosticDescriptor(id: "PRIM003",
                                                                                       title: "JsonPrimitive type is not partial",
                                                                                       messageFormat: "Type '{0}' must be partial to use 'JsonPrimitiveAttribute'",
+                                                                                      category: "PrimitiveGen",
+                                                                                      DiagnosticSeverity.Warning,
+                                                                                      isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NotPartialConverter = new DiagnosticDescriptor(id: "PRIM004",
+                                                                                      title: "JsonPrimitiveConverter type is not partial",
+                                                                                      messageFormat: "Type '{0}' must be partial to use 'JsonPrimitiveConverterAttribute'",
+                                                                                      category: "PrimitiveGen",
+                                                                                      DiagnosticSeverity.Warning,
+                                                                                      isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NotClassConverter = new DiagnosticDescriptor(id: "PRIM005",
+                                                                                      title: "JsonPrimitiveConverter type is not a class",
+                                                                                      messageFormat: "Type '{0}' must be a class to use 'JsonPrimitiveConverterAttribute'",
                                                                                       category: "PrimitiveGen",
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true);
