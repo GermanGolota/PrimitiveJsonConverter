@@ -69,10 +69,10 @@ internal sealed class PrimitiveJsonConverterGenerator : IIncrementalGenerator
                     .OfType<IMethodSymbol>()
                     .Where(_ => _.MethodKind == MethodKind.Conversion)
                     .Where(member => member.Parameters.Length == 1
-                        && IsInteresting(member.Parameters[0].Type.Name, symbol.Name)
-                        && IsInteresting(member.ReturnType.Name, symbol.Name)
+                        && IsInteresting(member.Parameters[0].Type.GetName(), symbol.Name)
+                        && IsInteresting(member.ReturnType.GetName(), symbol.Name)
                     )
-                    .Select(member => new TypeMap(member.Parameters[0].Type.Name, member.ReturnType.Name))
+                    .Select(member => new TypeMap(member.Parameters[0].Type.GetName(), member.ReturnType.GetName()))
                     .ToImmutableArray()
                 );
 

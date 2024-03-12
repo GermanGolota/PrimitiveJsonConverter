@@ -15,7 +15,7 @@ public sealed partial record DiceRoll
 
     public int Value { get; }
 
-    public static implicit operator DiceRoll(int value) => new(value);
-    public static implicit operator int(DiceRoll value) => value.Value;
+    public static implicit operator DiceRoll?(int? value) => value.HasValue ? new(value.Value) : null;
+    public static implicit operator int?(DiceRoll? value) => value?.Value;
     public static implicit operator DiceRoll(string value) => new(int.Parse(value));
 }

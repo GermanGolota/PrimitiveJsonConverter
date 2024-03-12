@@ -17,6 +17,6 @@ public sealed partial record FileName
 
     public string Value { get; }
 
-    public static implicit operator FileName(string value) => new(value);
-    public static implicit operator string(FileName value) => value.Value;
+    public static implicit operator FileName?(string? value) => value is null ? null : new(value);
+    public static implicit operator string?(FileName? value) => value?.Value;
 }
