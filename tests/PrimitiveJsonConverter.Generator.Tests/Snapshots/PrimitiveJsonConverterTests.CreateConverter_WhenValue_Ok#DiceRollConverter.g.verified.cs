@@ -4,25 +4,24 @@
 #pragma warning disable 1591
 // Disable CS8604 - Possible null reference argument for parameter.
 #pragma warning disable 8604
-﻿using System.Text.Json;
 ﻿#nullable enable
-[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.8")]
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.9")]
 internal partial class DiceRollConverter : global::System.Text.Json.Serialization.JsonConverter<global::DiceRoll>
 {
 	public override global::System.Boolean CanConvert(global::System.Type typeToConvert)
 	{
 		return typeToConvert == typeof(global::DiceRoll);
 	}
-	public override global::DiceRoll? Read(ref Utf8JsonReader reader, global::System.Type typeToConvert, JsonSerializerOptions options)
+	public override global::DiceRoll? Read(ref System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
 	{
-		if (reader.TokenType == JsonTokenType.Number)
+		if (reader.TokenType == System.Text.Json.JsonTokenType.Number)
 		{
 			return (global::DiceRoll?) reader.GetInt32();
 		}
 		
 		return null;
 	}
-	public override void Write(Utf8JsonWriter writer, global::DiceRoll value, JsonSerializerOptions options)
+	public override void Write(System.Text.Json.Utf8JsonWriter writer, global::DiceRoll value, System.Text.Json.JsonSerializerOptions options)
 	{
 		global::System.Int32? temp = (global::System.Int32?)value;
 		if (temp.HasValue)

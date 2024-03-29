@@ -4,7 +4,7 @@
 #pragma warning disable 1591
 // Disable CS8604 - Possible null reference argument for parameter.
 #pragma warning disable 8604
-[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.8")]
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("PrimitiveJsonConverter.Generator", "1.0.9")]
 [global::System.Text.Json.Serialization.JsonConverter(typeof(FileNamePrimitiveJsonConverter))]
 public partial record FileName
 {
