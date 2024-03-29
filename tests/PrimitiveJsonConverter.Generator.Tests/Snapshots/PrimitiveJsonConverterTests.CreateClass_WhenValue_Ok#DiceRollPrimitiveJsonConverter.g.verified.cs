@@ -12,16 +12,16 @@ public partial class DiceRollPrimitiveJsonConverter : global::System.Text.Json.S
 	{
 		return typeToConvert == typeof(global::DiceRoll);
 	}
-	public override global::DiceRoll? Read(ref System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+	public override global::DiceRoll? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
 	{
-		if (reader.TokenType == System.Text.Json.JsonTokenType.Number)
+		if (reader.TokenType == global::System.Text.Json.JsonTokenType.Number)
 		{
 			return (global::DiceRoll?) reader.GetInt32();
 		}
 		
 		return null;
 	}
-	public override void Write(System.Text.Json.Utf8JsonWriter writer, global::DiceRoll value, System.Text.Json.JsonSerializerOptions options)
+	public override void Write(global::System.Text.Json.Utf8JsonWriter writer, global::DiceRoll value, global::System.Text.Json.JsonSerializerOptions options)
 	{
 		global::System.Int32? temp = (global::System.Int32?)value;
 		if (temp.HasValue)

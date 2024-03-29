@@ -12,16 +12,16 @@ public partial class FileNamePrimitiveJsonConverter : global::System.Text.Json.S
 	{
 		return typeToConvert == typeof(global::FileName);
 	}
-	public override global::FileName? Read(ref System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+	public override global::FileName? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
 	{
-		if (reader.TokenType == System.Text.Json.JsonTokenType.String)
+		if (reader.TokenType == global::System.Text.Json.JsonTokenType.String)
 		{
 			return (global::FileName?) reader.GetString();
 		}
 		
 		return null;
 	}
-	public override void Write(System.Text.Json.Utf8JsonWriter writer, global::FileName value, System.Text.Json.JsonSerializerOptions options)
+	public override void Write(global::System.Text.Json.Utf8JsonWriter writer, global::FileName value, global::System.Text.Json.JsonSerializerOptions options)
 	{
 		global::System.String? temp = (global::System.String?)value;
 		if (temp is not null)

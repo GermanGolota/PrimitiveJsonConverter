@@ -74,14 +74,14 @@ internal static class SerializerWriter
         source.WriteLine($"return typeToConvert == typeof({mappingTypeName});");
         source.Indent--;
         source.WriteLine("}");
-        source.WriteLine($"public override {mappingTypeName}? Read(ref System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options)");
+        source.WriteLine($"public override {mappingTypeName}? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)");
         source.WriteLine("{");
         source.Indent++;
         source.Write("if (");
         for (var i = 0; i < methods.TokenTypes.Length; i++)
         {
             var tokenType = methods.TokenTypes[i];
-            source.Write($"reader.TokenType == System.Text.Json.JsonTokenType.{tokenType}");
+            source.Write($"reader.TokenType == global::System.Text.Json.JsonTokenType.{tokenType}");
             if (i != methods.TokenTypes.Length - 1)
             {
                 source.Write(" || ");
@@ -97,7 +97,7 @@ internal static class SerializerWriter
         source.WriteLine($"return null;");
         source.Indent--;
         source.WriteLine("}");
-        source.WriteLine($"public override void Write(System.Text.Json.Utf8JsonWriter writer, {mappingTypeName} value, System.Text.Json.JsonSerializerOptions options)");
+        source.WriteLine($"public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {mappingTypeName} value, global::System.Text.Json.JsonSerializerOptions options)");
         source.WriteLine("{");
         source.Indent++;
         source.WriteLine($"{mapping.PrimitiveType}? temp = ({mapping.PrimitiveType}?)value;");
